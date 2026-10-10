@@ -1,14 +1,11 @@
 /* ============================================================
-   LUDO CHAMP - GAME LOGIC & AUDIO ENGINE (script.js)
+   LUDO CHAMP - FULL GAME & MOVEMENT ENGINE (script.js)
    ============================================================ */
 
-// ------------------------------------------------------------
-// 1. SOUND ENGINE (Web Audio API)
-// ------------------------------------------------------------
 let audioCtx = null;
 let soundEnabled = true;
 
-// Web Audio Context initialization (Fixes Mobile/Browser Autoplay Restriction)
+// Web Audio Context initialization
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -18,11 +15,9 @@ function initAudio() {
     }
 }
 
-// Generate synthesized sound effects
 function playSound(type) {
     if (!soundEnabled) return;
     initAudio();
-
     if (!audioCtx) return;
 
     const osc = audioCtx.createOscillator();
@@ -45,68 +40,36 @@ function playSound(type) {
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.1);
-    } else if (type === 'win') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.4);
-        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
     }
 }
 
-// Speech Voice System (Hindi Accent)
 function speakText(text) {
     if (!soundEnabled || !('speechSynthesis' in window)) return;
-    
-    // Stop any ongoing speech
     window.speechSynthesis.cancel();
-
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'hi-IN'; // Indian Accent / Hindi voice
+    utterance.lang = 'hi-IN';
     utterance.rate = 1.0;
-    utterance.pitch = 1.1;
     window.speechSynthesis.speak(utterance);
 }
 
-// Toggle Sound ON / OFF
 function toggleSound() {
     soundEnabled = !soundEnabled;
     const icon = document.getElementById('soundIcon');
     if (icon) {
         icon.className = soundEnabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark";
     }
-    if (soundEnabled) {
-        playSound('move');
-        speakText("Sound On");
-    }
 }
 
-// ------------------------------------------------------------
-// 2. THEME & GOTI (TOKEN) CUSTOMIZATION
-// ------------------------------------------------------------
-
-// Theme Switcher
 function changeTheme(themeName) {
     document.body.className = themeName;
     playSound('move');
 }
 
-// Token (Goti) Style Switcher
 function changeTokenStyle(tokenType) {
-    const tokens = document.querySelectorAll('.token, .token-spot');
-    tokens.forEach(token => {
-        token.classList.remove('token-standard', 'token-gem', 'token-metal');
-        token.classList.add(tokenType);
-    });
     playSound('move');
-    console.log("Token style changed to: " + tokenType);
+    console.log("Token style: " + tokenType);
 }
 
-// ------------------------------------------------------------
-// 3. GAME MODES (LUDO VS KAUDI)
-// ------------------------------------------------------------
 function switchGameMode(mode) {
     const diceContainer = document.getElementById('diceContainer');
     const kaudiContainer = document.getElementById('kaudiContainer');
@@ -130,12 +93,19 @@ function switchGameMode(mode) {
 }
 
 // ------------------------------------------------------------
-// 4. DICE & KAUDI CONTROLLERS
+// LUDO GAME STATE & MOVEMENT ENGINE
 // ------------------------------------------------------------
+let currentDiceValue = 0;
+let currentPlayer = 'red'; // red, green, yellow, blue
+let playerPositions = {
+    red: [-1, -1, -1, -1],     // -1 means inside base
+    green: [-1, -1, -1, -1],
+    yellow: [-1, -1, -1, -1],
+    blue: [-1, -1, -1, -1]
+};
 
-// Render Dots on Ludo Dice based on value (1 - 6)
 function renderDiceFace(diceEl, value) {
-    diceEl.innerHTML = ''; // Clear previous dots
+    diceEl.innerHTML = '';
     const dotPositions = {
         1: ['center'],
         2: ['top-left', 'bottom-right'],
@@ -144,16 +114,13 @@ function renderDiceFace(diceEl, value) {
         5: ['top-left', 'top-right', 'center', 'bottom-left', 'bottom-right'],
         6: ['top-left', 'top-right', 'center-left', 'center-right', 'bottom-left', 'bottom-right']
     };
-
-    const positions = dotPositions[value] || ['center'];
-    positions.forEach(pos => {
+    (dotPositions[value] || ['center']).forEach(pos => {
         const dot = document.createElement('div');
         dot.className = `dot ${pos}`;
         diceEl.appendChild(dot);
     });
 }
 
-// Roll Ludo Dice
 function rollDice() {
     const diceEl = document.getElementById('dice');
     if (!diceEl) return;
@@ -163,17 +130,81 @@ function rollDice() {
 
     setTimeout(() => {
         diceEl.classList.remove('rolling');
-        const value = Math.floor(Math.random() * 6) + 1;
-        renderDiceFace(diceEl, value);
-        speakText("Aaya " + value);
+        currentDiceValue = Math.floor(Math.random() * 6) + 1;
+        renderDiceFace(diceEl, currentDiceValue);
+        speakText("Aaya " + currentDiceValue);
+        
+        checkValidMovesOrSwitch();
     }, 400);
 }
 
-// Throw Kaudi (Chaupar/Traditional Shells)
+function checkValidMovesOrSwitch() {
+    let positions = playerPositions[currentPlayer];
+    let canMove = false;
+
+    for (let pos of positions) {
+        if (pos !== -1 || currentDiceValue === 6) {
+            canMove = true;
+            break;
+        }
+    }
+
+    if (!canMove) {
+        setTimeout(() => {
+            switchNextPlayer();
+        }, 1500);
+    } else {
+        autoMoveToken();
+    }
+}
+
+function autoMoveToken() {
+    let positions = playerPositions[currentPlayer];
+    let moved = false;
+
+    for (let i = 0; i < positions.length; i++) {
+        if (positions[i] === -1 && currentDiceValue === 6) {
+            positions[i] = 0; // Open token from base to start track
+            moved = true;
+            break;
+        } else if (positions[i] !== -1 && positions[i] < 50) {
+            positions[i] += currentDiceValue; // Move forward on board
+            if (positions[i] > 50) positions[i] = 50; // Cap at home stretch
+            moved = true;
+            break;
+        }
+    }
+
+    if (moved) {
+        playSound('move');
+        speakText(currentPlayer + " goti chali");
+        updateBoardUI();
+    }
+
+    setTimeout(() => {
+        switchNextPlayer();
+    }, 1200);
+}
+
+function switchNextPlayer() {
+    const sequence = ['red', 'green', 'yellow', 'blue'];
+    let currentIndex = sequence.indexOf(currentPlayer);
+    currentPlayer = sequence[(currentIndex + 1) % sequence.length];
+
+    document.querySelectorAll('.player-card').forEach(card => card.classList.remove('active-player'));
+    const activeCard = document.getElementById(`card-${currentPlayer.substring(0,1)}`);
+    if (activeCard) activeCard.classList.add('active-player');
+
+    speakText(currentPlayer + " ki baari");
+}
+
+function updateBoardUI() {
+    console.log("Board updated with new positions:", playerPositions);
+}
+
 function throwKaudi() {
     const kaudis = document.querySelectorAll('.kaudi-shell');
     playSound('roll');
-
     let faceUpCount = 0;
     kaudis.forEach(k => {
         const isOpen = Math.random() > 0.5;
@@ -184,18 +215,12 @@ function throwKaudi() {
             k.style.transform = "rotateX(180deg)";
         }
     });
-
     setTimeout(() => {
-        const scoreText = faceUpCount === 0 ? "Aaya 8" : "Kaudi Score " + faceUpCodeText(faceUpCount);
+        const scoreText = faceUpCount === 0 ? "Aaya 8" : "Kaudi Score " + faceUpCount;
         speakText(scoreText);
     }, 300);
 }
 
-function faceUpCodeText(count) {
-    return count;
-}
-
-// Initial audio trigger on user first tap anywhere on screen
 document.addEventListener('click', () => {
     initAudio();
 }, { once: true });
