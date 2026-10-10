@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ludo Champ - Traditional & Modern Board Game</title>
     <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="theme-classic">
 
-    <!-- Header & Game Selection -->
     <header class="game-header">
         <div class="logo-container">
             <div class="champ-logo">
@@ -18,155 +16,98 @@
                 <span class="logo-text">LUDO <span class="highlight">CHAMP</span></span>
             </div>
         </div>
-
+        
         <div class="controls-bar">
-            <!-- Game Mode Toggle -->
             <div class="mode-selector">
                 <button id="btn-mode-ludo" class="mode-btn active" onclick="switchGameMode('ludo')">
-                    <i class="fa-solid fa-dice"></i> Ludo Mode
+                    <i class="fa-solid fa-dice"></i> Ludo
                 </button>
                 <button id="btn-mode-kaudi" class="mode-btn" onclick="switchGameMode('kaudi')">
-                    <i class="fa-solid fa-shell-shell"></i> Kaudi (Chaupar) Mode
+                    <i class="fa-solid fa-shell"></i> Kaudi
                 </button>
             </div>
 
-            <!-- Theme Selector -->
             <div class="theme-selector">
-                <label><i class="fa-solid fa-palette"></i> Theme:</label>
                 <select id="themeSelect" onchange="changeTheme(this.value)">
                     <option value="theme-classic">Classic Wood</option>
-                    <option value="theme-neon">Neon Cyberpunk</option>
+                    <option value="theme-neon">Neon Cyber</option>
                     <option value="theme-royal">Royal Gold</option>
-                    <option value="theme-nature">Forest Green</option>
                 </select>
             </div>
-
-            <!-- Goti (Token) Style Selector -->
-            <div class="token-selector">
-                <label><i class="fa-solid fa-chess-knight"></i> Goti Type:</label>
-                <select id="tokenSelect" onchange="changeTokenStyle(this.value)">
-                    <option value="token-standard">Standard Plastic</option>
-                    <option value="token-gem">Crystal Gems</option>
-                    <option value="token-metal">Metallic Shield</option>
-                </select>
-            </div>
-
-            <!-- Sound Toggle -->
+            
             <button class="sound-btn" id="soundToggle" onclick="toggleSound()">
                 <i class="fa-solid fa-volume-high" id="soundIcon"></i>
             </button>
         </div>
     </header>
 
-    <!-- Main Game Arena -->
     <main class="game-container">
-
-        <!-- Player Info Sidebar Left -->
-        <div class="player-panel left-panel">
-            <div class="player-card p1 active-player" id="card-p1">
-                <div class="player-avatar red"><i class="fa-solid fa-user"></i></div>
-                <div class="player-info">
-                    <h3>Red Player</h3>
-                    <p class="status">Turn Active</p>
-                </div>
-            </div>
-            <div class="player-card p2" id="card-p2">
-                <div class="player-avatar green"><i class="fa-solid fa-user"></i></div>
-                <div class="player-info">
-                    <h3>Green Player</h3>
-                    <p class="status">Waiting...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Central Board Section -->
         <div class="board-wrapper">
-            <!-- LUDO BOARD CANVAS -->
+            <!-- LUDO BOARD -->
             <div id="ludoBoard" class="board ludo-board">
-                <!-- Red Base -->
+                <!-- Bases -->
                 <div class="base red-base">
                     <div class="base-inner">
-                        <div class="token-spot" id="r-home-1"></div>
-                        <div class="token-spot" id="r-home-2"></div>
-                        <div class="token-spot" id="r-home-3"></div>
-                        <div class="token-spot" id="r-home-4"></div>
+                        <div class="token-spot" onclick="handleTokenClick('red', 0)"><div class="token red-token" id="red-0"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('red', 1)"><div class="token red-token" id="red-1"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('red', 2)"><div class="token red-token" id="red-2"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('red', 3)"><div class="token red-token" id="red-3"></div></div>
                     </div>
                 </div>
-                <!-- Green Base -->
                 <div class="base green-base">
                     <div class="base-inner">
-                        <div class="token-spot" id="g-home-1"></div>
-                        <div class="token-spot" id="g-home-2"></div>
-                        <div class="token-spot" id="g-home-3"></div>
-                        <div class="token-spot" id="g-home-4"></div>
+                        <div class="token-spot" onclick="handleTokenClick('green', 0)"><div class="token green-token" id="green-0"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('green', 1)"><div class="token green-token" id="green-1"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('green', 2)"><div class="token green-token" id="green-2"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('green', 3)"><div class="token green-token" id="green-3"></div></div>
                     </div>
                 </div>
-                <!-- Yellow Base -->
                 <div class="base yellow-base">
                     <div class="base-inner">
-                        <div class="token-spot" id="y-home-1"></div>
-                        <div class="token-spot" id="y-home-2"></div>
-                        <div class="token-spot" id="y-home-3"></div>
-                        <div class="token-spot" id="y-home-4"></div>
+                        <div class="token-spot" onclick="handleTokenClick('yellow', 0)"><div class="token yellow-token" id="yellow-0"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('yellow', 1)"><div class="token yellow-token" id="yellow-1"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('yellow', 2)"><div class="token yellow-token" id="yellow-2"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('yellow', 3)"><div class="token yellow-token" id="yellow-3"></div></div>
                     </div>
                 </div>
-                <!-- Blue Base -->
                 <div class="base blue-base">
                     <div class="base-inner">
-                        <div class="token-spot" id="b-home-1"></div>
-                        <div class="token-spot" id="b-home-2"></div>
-                        <div class="token-spot" id="b-home-3"></div>
-                        <div class="token-spot" id="b-home-4"></div>
+                        <div class="token-spot" onclick="handleTokenClick('blue', 0)"><div class="token blue-token" id="blue-0"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('blue', 1)"><div class="token blue-token" id="blue-1"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('blue', 2)"><div class="token blue-token" id="blue-2"></div></div>
+                        <div class="token-spot" onclick="handleTokenClick('blue', 3)"><div class="token blue-token" id="blue-3"></div></div>
                     </div>
                 </div>
 
-                <!-- Center Trophy Zone -->
-                <div class="center-home">
-                    <i class="fa-solid fa-trophy trophy-icon"></i>
+                <!-- Path Tracks Cells (Generated via CSS Grid & HTML) -->
+                <div class="track-path">
+                    <!-- Center Home Trophy -->
+                    <div class="center-home">
+                        <i class="fa-solid fa-trophy trophy-icon"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- Dice & Kaudi Action Controls -->
+            <!-- Action Controls -->
             <div class="action-area">
-                <!-- Ludo Dice -->
                 <div id="diceContainer" class="dice-container" onclick="rollDice()">
                     <div id="dice" class="dice">
                         <div class="dot center"></div>
                     </div>
-                    <span class="action-text">Tap to Roll Dice</span>
+                    <span id="turnIndicatorText" class="action-text">Red's Turn - Tap Dice</span>
                 </div>
 
-                <!-- Kaudi (Shells) Thrower -->
                 <div id="kaudiContainer" class="kaudi-container hidden" onclick="throwKaudi()">
                     <div class="kaudi-shells">
-                        <div class="kaudi-shell" id="k1">🐚</div>
-                        <div class="kaudi-shell" id="k2">🐚</div>
-                        <div class="kaudi-shell" id="k3">🐚</div>
-                        <div class="kaudi-shell" id="k4">🐚</div>
+                        <div class="kaudi-shell">🐚</div>
+                        <div class="kaudi-shell">🐚</div>
+                        <div class="kaudi-shell">🐚</div>
+                        <div class="kaudi-shell">🐚</div>
                     </div>
                     <span class="action-text">Tap to Throw Kaudi</span>
                 </div>
             </div>
         </div>
-
-        <!-- Player Info Sidebar Right -->
-        <div class="player-panel right-panel">
-            <div class="player-card p3" id="card-p3">
-                <div class="player-avatar yellow"><i class="fa-solid fa-user"></i></div>
-                <div class="player-info">
-                    <h3>Yellow Player</h3>
-                    <p class="status">Waiting...</p>
-                </div>
-            </div>
-            <div class="player-card p4" id="card-p4">
-                <div class="player-avatar blue"><i class="fa-solid fa-user"></i></div>
-                <div class="player-info">
-                    <h3>Blue Player</h3>
-                    <p class="status">Waiting...</p>
-                </div>
-            </div>
-        </div>
-
     </main>
 
     <script src="script.js"></script>
